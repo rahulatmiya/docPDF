@@ -591,30 +591,42 @@ with tab1:
                         except Exception as e:
                             st.error(f"Groq request failed: {e}")
 
-with tab2:
-    st.markdown('<div class="section-title">🧪 Generate Test Cases</div>', unsafe_allow_html=True)
 
-    col_a, col_b = st.columns([1, 1.6], gap="large")
+with tab2:
+    st.markdown('<div class="section-title">🧪 QA Copilot</div>', unsafe_allow_html=True)
+
+    col_a, col_b, col_c = st.columns([1, 1, 1], gap="large")
 
     with col_a:
-        st.markdown("**Upload File** *(PDF, DOCX, JSON — optional)*")
-        tc_file = st.file_uploader("", type=["pdf", "docx", "json"], key="tc_upload", label_visibility="collapsed")
-        st.markdown("**Number of test cases**")
-        tc_count = st.number_input("", min_value=1, max_value=50, value=5, step=1, key="tc_count", label_visibility="collapsed")
+        st.markdown("**Context & Data**")
+        tc_file = st.file_uploader("Upload File (PDF, DOCX, JSON)", type=["pdf", "docx", "json"], key="tc_upload")
+        tc_text_input = st.text_area("Paste Requirements", placeholder="Paste your requirements, feature description, or any text here...", height=200, key="tc_text_input")
 
     with col_b:
-        st.markdown("**Paste text / requirements** *(optional if PDF uploaded)*")
-        tc_text_input = st.text_area("", placeholder="Paste your requirements, feature description, or any text here...", height=140, key="tc_text_input", label_visibility="collapsed")
-        st.markdown("**Additional instructions** *(optional)*")
-        tc_prompt = st.text_area("", placeholder="e.g. focus on edge cases, generate unit tests, include invalid inputs", height=80, label_visibility="collapsed")
-        st.button("Generate Test Cases", key="tc_button")
+        st.markdown("**Testing Scope**")
+        tc_count = st.number_input("Number of test cases", min_value=1, max_value=50, value=5, step=1, key="tc_count")
+        
+        st.markdown("**Generate:**")
+        tc_manual = st.checkbox("✓ Manual Test Cases", value=True)
+        tc_api = st.checkbox("✓ API Test Cases")
+        tc_sec = st.checkbox("✓ Security Tests")
+        tc_perf = st.checkbox("✓ Performance Tests")
+        tc_edge = st.checkbox("✓ Edge Cases")
+        tc_neg = st.checkbox("✓ Negative Scenarios")
 
-    if st.session_state.get("tc_button"):
+    with col_c:
+        st.markdown("**Automation Engine**")
+        auto_fw = st.selectbox("Automation Framework", ["None", "Cypress", "Playwright", "Selenium Java", "Postman Collection"])
+        tc_prompt = st.text_area("Custom Instructions", placeholder="e.g. focus on login flow...", height=80)
+        btn_generate_qa = st.button("✨ Generate QA Suite", type="primary", use_container_width=True)
+
+    if btn_generate_qa:
         pdf_text = ""
         manual_text = tc_text_input.strip()
 
         if tc_file:
             with st.spinner(f"Reading {tc_file.name}..."):
+                from utils import extract_text_from_file # Ensure it's imported or available
                 pdf_text = extract_text_from_file(tc_file).strip()
             if not pdf_text:
                 st.warning(f"No text extracted from {tc_file.name} — falling back to pasted text only.")
@@ -630,7 +642,7 @@ with tab2:
             context = manual_text[:50000]
             source_label = "pasted text"
         else:
-            st.warning("Please upload a PDF or paste some text to generate test cases.")
+            st.warning("Please upload a file or paste some text to generate the QA Suite.")
             context = None
             source_label = ""
 
@@ -639,33 +651,55 @@ with tab2:
             if not groq_key:
                 st.error("Missing GROQ_API_KEY in environment.")
             else:
-                with st.spinner(f"Generating test cases from {source_label}..."):
+                st.markdown("---")
+                with st.spinner(f"Generating comprehensive QA Suite..."):
                     try:
                         client = Groq(api_key=groq_key)
-                        user_msg = f"Generate {tc_count} concise, actionable test cases (title + short description + example input/output where applicable) based on the following context:\n\n{context}"
+                        
+                        # Build Prompt Scope
+                        scope_list = []
+                        if tc_manual: scope_list.append("Manual Test Cases (title, steps, expected result)")
+                        if tc_api: scope_list.append("API Test Cases (endpoint, payload, assertions)")
+                        if tc_sec: scope_list.append("Security Tests (XSS, SQLi, Auth bypass etc.)")
+                        if tc_perf: scope_list.append("Performance Tests (load, stress, latency)")
+                        if tc_edge: scope_list.append("Edge Cases (boundary values, extreme states)")
+                        if tc_neg: scope_list.append("Negative Scenarios (invalid inputs, error handling)")
+                        
+                        user_msg = f"Act as a Principal QA Automation Engineer. Based on the following context, generate a massive, highly professional testing suite.\n\n"
+                        user_msg += f"**CONTEXT:**\n{context}\n\n"
+                        user_msg += f"Please generate exactly {tc_count} total test cases, distributing them logically across the following requested categories:\n"
+                        user_msg += "\n".join([f"- {s}" for s in scope_list])
+                        
+                        if auto_fw != "None":
+                            user_msg += f"\n\n**AUTOMATION INSTRUCTIONS:**\n"
+                            user_msg += f"After the test cases, write a production-ready automation script using {auto_fw} that covers the most critical happy-path scenarios. Ensure the code is wrapped in standard markdown code blocks (e.g. ```javascript or ```java or ```json)."
+                            
                         if tc_prompt.strip():
-                            user_msg += f"\n\nAdditional instructions: {tc_prompt.strip()}"
+                            user_msg += f"\n\n**ADDITIONAL INSTRUCTIONS:**\n{tc_prompt.strip()}"
+                            
+                        user_msg += "\n\nFormat the entire output beautifully with Markdown headers (###)."
+
                         messages = [
-                            {"role": "system", "content": "You are an assistant that generates clear test cases for software components."},
+                            {"role": "system", "content": "You are an elite Software Development Engineer in Test (SDET). You write crystal clear test cases and perfect automation code."},
                             {"role": "user", "content": user_msg}
                         ]
+                        
                         resp = client.chat.completions.create(
                             model="qwen/qwen3-32b",
                             messages=messages,
-                            temperature=0.0,
-                            max_completion_tokens=2048,
+                            temperature=0.2,
+                            max_completion_tokens=4000,
                             top_p=0.95,
                             stream=False
                         )
-                        try:
-                            out = resp.choices[0].message.content
-                        except Exception:
-                            out = str(resp)
-                        st.markdown(f'<div class="section-title" style="margin-top:1.5rem;">Generated Test Cases <span style="font-size:0.75rem;opacity:0.6;">· source: {source_label}</span></div>', unsafe_allow_html=True)
-                        st.code(out, language="markdown")
+                        out = resp.choices[0].message.content
+                        
+                        st.markdown(f"### 🏆 Comprehensive QA Suite")
+                        st.markdown(f"*Source: {source_label}*")
+                        st.markdown(out)
+                        
                     except Exception as e:
                         st.error(f"Groq request failed: {e}")
-
 
 
 with tab3:
