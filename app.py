@@ -129,6 +129,91 @@ st.markdown("""
         border-radius: 4px;
     }
 
+
+    /* Hero Redesign CSS */
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .animated-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+        cursor: default;
+    }
+    
+    .animated-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(0, 242, 254, 0.4);
+        box-shadow: 0 10px 20px -10px rgba(0, 242, 254, 0.3);
+    }
+    
+    .animated-card .emoji {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+    
+    .animated-card:hover .emoji {
+        transform: scale(1.1);
+    }
+    
+    .animated-card .title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e2e8f0;
+    }
+    
+
+    .animated-card .subtitle {
+        display: block;
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-top: 6px;
+        line-height: 1.3;
+    }
+
+    .hero p.tagline {
+        color: #00f2fe;
+        font-weight: 500;
+        font-size: 1.2rem;
+        margin-top: -10px;
+    }
+
+
+    /* KPI Redesign CSS */
+    .kpi-grid {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+    }
+    .kpi-card {
+        background: rgba(0, 242, 254, 0.05);
+        border: 1px solid rgba(0, 242, 254, 0.2);
+        border-radius: 8px;
+        padding: 15px 25px;
+        color: #00f2fe;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 15px rgba(0, 242, 254, 0.1);
+        text-align: center;
+        min-width: 140px;
+        letter-spacing: 0.5px;
+    }
+
     /* Tab styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 20px;
@@ -382,7 +467,7 @@ st.markdown("""
              alt="Mindflix Logo">
         <div>
             <div class="navbar-name">Mindflix</div>
-            <div class="navbar-tagline">Mindflix &nbsp;·&nbsp; Empowering Every Learner</div>
+            <div class="navbar-tagline">One AI workspace for QA engineers, marketers, and teams.</div>
         </div>
     </div>
     <div class="navbar-badge">AI Tools</div>
@@ -392,12 +477,40 @@ st.markdown("""
 # Hero
 st.markdown("""
 <div class="hero">
-    <h1>📄 PDF Chatbot</h1>
-    <p>Powered by Mindflix &nbsp;·&nbsp; Ask questions or generate test cases from PDF, DOCX, or JSON</p>
+    <h1>📄 Mindflix AI</h1>
+    <p class="tagline">AI Workspace for Modern Teams</p>
+    <div class="tools-grid">
+        <div class="animated-card">
+            <span class="emoji">📄</span>
+            <span class="title">Docs Intelligence</span>
+            <span class="subtitle">Ask anything from documents</span>
+        </div>
+        <div class="animated-card">
+            <span class="emoji">🧪</span>
+            <span class="title">QA Copilot</span>
+            <span class="subtitle">Generate test cases instantly</span>
+        </div>
+        <div class="animated-card">
+            <span class="emoji">🎨</span>
+            <span class="title">Social Studio</span>
+            <span class="subtitle">Create branded social content</span>
+        </div>
+        <div class="animated-card">
+            <span class="emoji">🧬</span>
+            <span class="title">Brand Intelligence</span>
+            <span class="subtitle">Extract and scale your brand identity</span>
+        </div>
+    </div>
+</div>
+<div class="kpi-grid">
+    <div class="kpi-card">150+ Docs</div>
+    <div class="kpi-card">2000+ Tests</div>
+    <div class="kpi-card">500+ Posts</div>
+    <div class="kpi-card">50+ Brands</div>
 </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["💬  Upload & QA", "🧪  Test Case Generator", "🖼️ BrandGen", "🧬 Brand DNA"])
+tab1, tab2, tab3, tab4 = st.tabs(["📄 Documents", "🧪 QA Copilot", "🎨 Social Studio", "🧬 Brand Intelligence"])
 
 with tab1:
     col1, col2 = st.columns([1, 1.6], gap="large")
@@ -554,118 +667,211 @@ with tab2:
                         st.error(f"Groq request failed: {e}")
 
 
+
 with tab3:
-    st.markdown('<div class="section-title">🖼️ BrandGen: Image Watermarking & Filters</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🎨 AI Creative Studio</div>', unsafe_allow_html=True)
     
-    st.markdown("**Upload Image** *(PNG, JPG, JPEG)*")
-    bg_file = st.file_uploader("", type=["png", "jpg", "jpeg"], key="bg_upload", label_visibility="collapsed")
+    col_left, col_center, col_right = st.columns([1, 1.5, 1], gap="medium")
     
-    col_c, col_d = st.columns([1, 1], gap="large")
-    with col_c:
-        st.markdown("**Filter Style**")
-        bg_filter = st.selectbox("", ["Mindflix Signature", "Vibrant", "Cinematic", "Vintage", "None"], key="bg_filter", label_visibility="collapsed")
-    with col_d:
-        st.markdown("**Brand Text**")
-        bg_text = st.text_input("", value="Mindflix", key="bg_text", label_visibility="collapsed")
+    with col_left:
+        st.markdown("**🎨 Creative Controls**")
+        bg_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"], key="bg_upload_v2")
+        brand_name = st.text_input("Brand Name", value="Mindflix", key="brand_name_v2")
+        logo_file = st.file_uploader("Logo Upload (Optional)", type=["png"], key="logo_upload_v2")
         
-    st.button("Apply Branding", key="bg_button")
+        platform = st.radio("Platform", ["LinkedIn", "Instagram", "Facebook", "X"], horizontal=True)
+        style = st.selectbox("Style", ["Corporate", "Futuristic", "Luxury", "Minimal", "Startup"])
         
-    if st.session_state.get("bg_button") and bg_file:
-        try:
-            start_time = time.time()
-            
-            # Open image
-            original_image = Image.open(io.BytesIO(bg_file.read())).convert("RGBA")
-            image = original_image.copy()
-            
-            # --- APPLY FILTERS ---
-            if bg_filter != "None":
-                img_rgb = image.convert("RGB")
-                
-                if bg_filter in ["Mindflix Signature", "Vibrant"]:
-                    enhancer = ImageEnhance.Color(img_rgb)
-                    img_rgb = enhancer.enhance(1.3)
-                    enhancer = ImageEnhance.Contrast(img_rgb)
-                    img_rgb = enhancer.enhance(1.1)
-                    enhancer = ImageEnhance.Sharpness(img_rgb)
-                    img_rgb = enhancer.enhance(1.2)
-                    
-                if bg_filter in ["Cinematic", "Mindflix Signature"]:
-                    tint = Image.new("RGB", img_rgb.size, (0, 100, 150))
-                    img_rgb = Image.blend(img_rgb, tint, alpha=0.1)
-                    enhancer = ImageEnhance.Brightness(img_rgb)
-                    img_rgb = enhancer.enhance(0.9)
-                    
-                if bg_filter == "Vintage":
-                    tint = Image.new("RGB", img_rgb.size, (255, 150, 0))
-                    img_rgb = Image.blend(img_rgb, tint, alpha=0.15)
-                    enhancer = ImageEnhance.Contrast(img_rgb)
-                    img_rgb = enhancer.enhance(0.8)
-                    
-                if bg_filter in ["Mindflix Signature", "Cinematic", "Vintage"]:
-                    import math
-                    w, h = img_rgb.size
-                    from PIL import ImageFilter
-                    vignette = Image.new("L", (w, h), 0)
-                    d = ImageDraw.Draw(vignette)
-                    for i in range(min(w, h) // 2, min(w, h), 5):
-                        d.ellipse((w/2 - i, h/2 - i, w/2 + i, h/2 + i), outline=int(255 * (i / min(w, h))), width=5)
-                    vignette = vignette.filter(ImageFilter.GaussianBlur(min(w, h) * 0.1))
-                    dark = Image.new("RGB", img_rgb.size, (0, 0, 0))
-                    img_rgb = Image.composite(dark, img_rgb, vignette)
-                
-                image = img_rgb.convert("RGBA")
-            
-            # --- APPLY WATERMARK ---
-            txt_img = Image.new("RGBA", image.size, (255, 255, 255, 0))
-            d = ImageDraw.Draw(txt_img)
-            font_size = int(image.width * 0.05)
+    with col_center:
+        st.markdown("**🖼️ Image Preview**")
+        center_placeholder = st.empty()
+        
+        if not bg_file:
+            center_placeholder.info("Upload an image on the left to see the preview here.")
+        else:
             try:
-                font = ImageFont.truetype("arial.ttf", font_size)
-            except:
-                font = ImageFont.load_default()
+                import io
+                from PIL import Image
+                if 'bg_file_id' not in st.session_state or st.session_state['bg_file_id'] != bg_file.file_id:
+                    original_img = Image.open(io.BytesIO(bg_file.read())).convert("RGBA")
+                    st.session_state['bg_original'] = original_img
+                    st.session_state['bg_file_id'] = bg_file.file_id
+                # Quick preview of current state
+                center_placeholder.image(st.session_state['bg_original'], use_container_width=True)
+            except Exception as e:
+                center_placeholder.error(f"Error loading image: {e}")
+                
+    with col_right:
+        st.markdown("**🤖 AI Enhancement**")
+        st.markdown("- ✓ Add Brand Logo\n- ✓ Add AI Generated Quote\n- ✓ Create Marketing Headline\n- ✓ Generate CTA\n- ✓ Add Trending Hashtags\n- ✓ Create Multiple Variants")
+        
+        st.markdown("**Templates**")
+        template = st.selectbox("", ["🚀 Product Launch", "📢 Announcement", "💡 Tip Of The Day", "🎯 Hiring", "📈 Growth Stats", "🤖 AI Quote", "📰 News Update"], label_visibility="collapsed")
+        
+        st.markdown("**AI Actions**")
+        btn_generate = st.button("✨ Generate Campaign Assets", type="primary", use_container_width=True)
+        btn_bg = st.button("✨ Remove Background", use_container_width=True)
+        btn_enhance = st.button("✨ Enhance Image", use_container_width=True)
+        btn_resize = st.button("✨ Resize for LinkedIn", use_container_width=True)
+        
+        if btn_bg and 'bg_original' in st.session_state:
+            with st.spinner("Simulating smart background removal..."):
+                img = st.session_state['bg_original'].convert("RGBA")
+                datas = img.getdata()
+                newData = []
+                bg_color = datas[0] # assume top-left is background
+                for item in datas:
+                    if abs(item[0]-bg_color[0]) < 35 and abs(item[1]-bg_color[1]) < 35 and abs(item[2]-bg_color[2]) < 35:
+                        newData.append((255, 255, 255, 0))
+                    else:
+                        newData.append(item)
+                img.putdata(newData)
+                st.session_state['bg_original'] = img
+                center_placeholder.image(img, use_container_width=True)
+                
+        if btn_enhance and 'bg_original' in st.session_state:
+            from PIL import ImageEnhance
+            img = st.session_state['bg_original'].convert("RGB")
+            img = ImageEnhance.Color(img).enhance(1.3)
+            img = ImageEnhance.Contrast(img).enhance(1.15)
+            img = ImageEnhance.Sharpness(img).enhance(1.4)
+            img = img.convert("RGBA")
+            st.session_state['bg_original'] = img
+            center_placeholder.image(img, use_container_width=True)
             
-            bbox = d.textbbox((0, 0), bg_text, font=font)
-            text_w = bbox[2] - bbox[0]
-            text_h = bbox[3] - bbox[1]
-            
-            margin = int(image.width * 0.02)
-            x = image.width - text_w - margin
-            y = image.height - text_h - margin
-            
-            outline_color = (0, 0, 0, 150)
-            text_color = (0, 242, 254, 230)
-            for adj in range(-2, 3):
-                d.text((x+adj, y), bg_text, font=font, fill=outline_color)
-                d.text((x, y+adj), bg_text, font=font, fill=outline_color)
-            d.text((x, y), bg_text, font=font, fill=text_color)
-            
-            out = Image.alpha_composite(image, txt_img).convert("RGB")
-            orig_rgb = original_image.convert("RGB")
-            
-            st.markdown('<div class="section-title">✨ Final Result</div>', unsafe_allow_html=True)
-            st.image(out, use_container_width=True)
-            
-            # Download button
-            buf_out = io.BytesIO()
-            out.save(buf_out, format="JPEG", quality=95)
-            
-            st.download_button(
-                label="Download Branded Image",
-                data=buf_out.getvalue(),
-                file_name="brandgen_result.jpg",
-                mime="image/jpeg"
-            )
-            
-        except Exception as e:
-            import traceback
-            st.error(f"Error processing image: {e}\\n{traceback.format_exc()}")
-    elif st.session_state.get("bg_button"):
-        st.warning("Please upload an image first.")
+        if btn_resize and 'bg_original' in st.session_state:
+            img = st.session_state['bg_original']
+            width, height = img.size
+            new_size = min(width, height)
+            left = (width - new_size)/2
+            top = (height - new_size)/2
+            right = (width + new_size)/2
+            bottom = (height + new_size)/2
+            img = img.crop((left, top, right, bottom))
+            from PIL import Image
+            img = img.resize((1200, 1200), Image.Resampling.LANCZOS)
+            st.session_state['bg_original'] = img
+            center_placeholder.image(img, use_container_width=True)
+        
+    # Generate Output Grid below if clicked
+    if btn_generate and st.session_state.get('bg_original'):
+        st.markdown("---")
+        st.markdown("### 🏆 AI Generated Variants")
+        
+        with st.spinner("Generating marketing copy and rendering variants..."):
+            try:
+                # 1. Groq LLM Generation
+                import os
+                from groq import Groq
+                groq_key = os.getenv("GROQ_API_KEY")
+                quotes = [
+                    "The Future of Automation Starts Here",
+                    "Transform Ideas Into Reality",
+                    "Powered by AI Excellence"
+                ]
+                
+                if groq_key:
+                    client = Groq(api_key=groq_key)
+                    prompt = f"Generate 3 very short (3-6 words) punchy marketing headlines for a brand named '{brand_name}' targeting '{platform}' in a '{style}' tone for a '{template}' post. Output ONLY the 3 headlines on separate lines, no numbers, no quotes."
+                    resp = client.chat.completions.create(
+                        model="qwen/qwen3-32b",
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=0.7,
+                        max_completion_tokens=150
+                    )
+                    out_lines = [line.strip().strip('"').strip("'") for line in resp.choices[0].message.content.strip().split('\n') if line.strip()]
+                    if len(out_lines) >= 3:
+                        quotes = out_lines[:3]
+                
+                # 2. Setup Font Download
+                import urllib.request
+                import os
+                from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
+                font_path = "Roboto-Bold.ttf"
+                if not os.path.exists(font_path):
+                    urllib.request.urlretrieve("https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-Bold.ttf", font_path)
+                
+                # 3. Render Variants
+                base_img = st.session_state['bg_original'].copy()
+                w, h = base_img.size
+                
+                # Dynamic font sizing
+                title_font_size = int(h * 0.08)
+                brand_font_size = int(h * 0.04)
+                try:
+                    title_font = ImageFont.truetype(font_path, title_font_size)
+                    brand_font = ImageFont.truetype(font_path, brand_font_size)
+                except Exception:
+                    title_font = ImageFont.load_default()
+                    brand_font = ImageFont.load_default()
+                
+                def render_variant(img, quote, filter_type):
+                    v_img = img.copy()
+                    # Apply filter
+                    if filter_type == "Corporate":
+                        tint = Image.new("RGBA", v_img.size, (0, 50, 100, 50))
+                        v_img = Image.alpha_composite(v_img, tint)
+                    elif filter_type == "Startup":
+                        enhancer = ImageEnhance.Color(v_img)
+                        v_img = enhancer.enhance(1.4)
+                    elif filter_type == "Futuristic":
+                        tint = Image.new("RGBA", v_img.size, (200, 0, 255, 40))
+                        v_img = Image.alpha_composite(v_img, tint)
+                        enhancer = ImageEnhance.Contrast(v_img)
+                        v_img = enhancer.enhance(1.2)
+                    
+                    # Draw Text
+                    draw = ImageDraw.Draw(v_img)
+                    # Overlay dark gradient at bottom for text readability
+                    grad = Image.new('RGBA', (w, int(h*0.4)), color=(0,0,0,0))
+                    g_draw = ImageDraw.Draw(grad)
+                    for i in range(int(h*0.4)):
+                        alpha = int(255 * (i / (h*0.4)))
+                        g_draw.line([(0, i), (w, i)], fill=(0, 0, 0, alpha))
+                    v_img.paste(grad, (0, int(h*0.6)), grad)
+                    
+                    # Wrap text
+                    import textwrap
+                    wrapped_quote = textwrap.fill(quote, width=25)
+                    
+                    # Need bbox for height
+                    try:
+                        bbox = draw.multiline_textbbox((0,0), wrapped_quote, font=title_font)
+                        text_h = bbox[3] - bbox[1]
+                    except Exception:
+                        text_h = title_font_size * 2
+                    
+                    draw.multiline_text((int(w*0.05), int(h*0.85) - text_h), wrapped_quote, fill="white", font=title_font)
+                    draw.text((int(w*0.05), int(h*0.92)), f"Powered by {brand_name}", fill="#00f2fe", font=brand_font)
+                    
+                    # Convert to RGB for Streamlit/Download
+                    return v_img.convert("RGB")
+                
+                v1 = render_variant(base_img, quotes[0] if len(quotes) > 0 else "Corporate Update", "Corporate")
+                v2 = render_variant(base_img, quotes[1] if len(quotes) > 1 else "Startup Mode", "Startup")
+                v3 = render_variant(base_img, quotes[2] if len(quotes) > 2 else "Futuristic Vision", "Futuristic")
+                
+                col_o1, col_o2, col_o3, col_o4 = st.columns(4)
+                with col_o1:
+                    st.markdown("**Original**")
+                    st.image(base_img.convert("RGB"), use_container_width=True)
+                with col_o2:
+                    st.markdown("**Corporate**")
+                    st.image(v1, use_container_width=True)
+                with col_o3:
+                    st.markdown("**Startup**")
+                    st.image(v2, use_container_width=True)
+                with col_o4:
+                    st.markdown("**Futuristic**")
+                    st.image(v3, use_container_width=True)
+                
+            except Exception as e:
+                import traceback
+                st.error(f"Error during generation: {e}\n{traceback.format_exc()}")
 
 with tab4:
-    st.markdown('<div class="section-title">🧬 Brand DNA & AI Visuals Generator</div>', unsafe_allow_html=True)
-    st.markdown("Extract your Brand DNA and generate brand-compliant marketing images using AI.")
+    st.markdown('<div class="section-title">🧬 Brand Intelligence & AI Visuals Generator</div>', unsafe_allow_html=True)
+    st.markdown("Extract your Brand Intelligence and generate brand-compliant marketing images using AI.")
     
     col_dna1, col_dna2 = st.columns([1, 1], gap="large")
     
@@ -676,15 +882,15 @@ with tab4:
         st.markdown("**Campaign Goal**")
         dna_goal = st.text_input("", placeholder="e.g. Instagram post for summer sale", key="dna_goal")
         
-        generate_btn = st.button("Extract DNA & Generate Image", key="dna_btn")
+        generate_btn = st.button("Extract Intelligence & Generate Image", key="dna_btn")
         
     with col_dna2:
         if generate_btn:
             if not dna_guidelines or not dna_goal:
                 st.warning("Please provide both guidelines and a campaign goal.")
             else:
-                with st.spinner("🧠 Extracting Brand DNA..."):
-                    # 1. Extract DNA using Groq
+                with st.spinner("🧠 Extracting Brand Intelligence..."):
+                    # 1. Extract Intelligence using Groq
                     try:
                         import os
                         from groq import Groq
@@ -713,7 +919,7 @@ with tab4:
                         )
                         optimized_prompt = resp.choices[0].message.content.strip()
                         
-                        st.success("DNA Extracted & Prompt Engineered!")
+                        st.success("Intelligence Extracted & Prompt Engineered!")
                         with st.expander("View Optimized Image Prompt"):
                             st.write(optimized_prompt)
                             
@@ -765,4 +971,4 @@ with tab4:
                             
                     except Exception as e:
                         import traceback
-                        st.error(f"Error extracting DNA: {e}\n{traceback.format_exc()}")
+                        st.error(f"Error extracting Intelligence: {e}\n{traceback.format_exc()}")
