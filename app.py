@@ -1,6 +1,11 @@
+import requests
+import json
 import streamlit as st
 import io
+import base64
+import time
 import json
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 from pypdf import PdfReader
 from docx import Document
 
@@ -13,17 +18,20 @@ import os
 load_dotenv()
 
 st.set_page_config(
-    page_title="Mind Setters Academy — PDF Chatbot",
-    page_icon="https://mindsetters.sg/favicon.ico",
+    page_title="Mindflix — PDF Chatbot",
+    page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 st.markdown("""
 <style>
+    /* Import modern typography */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
     /* Global font */
     html, body, [class*="css"] {
-        font-family: 'Segoe UI', sans-serif;
+        font-family: 'Outfit', sans-serif !important;
     }
 
     /* Hide default Streamlit header/footer */
@@ -43,153 +51,217 @@ st.markdown("""
         padding-bottom: 0 !important;
     }
 
-    /* Page background */
+    /* Animated Aurora Background */
+    @keyframes aurora {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
     .stApp {
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        background: linear-gradient(-45deg, #0b0f19, #1a1025, #0a192f, #112240);
+        background-size: 400% 400%;
+        animation: aurora 15s ease infinite;
         min-height: 100vh;
     }
 
     /* Hero banner */
     .hero {
         text-align: center;
-        padding: 2.5rem 1rem 1.5rem;
+        padding: 3rem 1rem 2rem;
+        animation: fadeInDown 1s ease-out;
+    }
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     .hero h1 {
-        font-size: 2.8rem;
+        font-size: 3.2rem;
         font-weight: 800;
-        color: #ffffff;
-        letter-spacing: -0.5px;
-        margin-bottom: 0.3rem;
+        background: -webkit-linear-gradient(45deg, #00f2fe, #4facfe, #00f2fe);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -1px;
+        margin-bottom: 0.5rem;
+        text-shadow: 0px 4px 15px rgba(0, 242, 254, 0.3);
     }
     .hero p {
-        color: #a78bfa;
-        font-size: 1.05rem;
+        color: #94a3b8;
+        font-size: 1.15rem;
+        font-weight: 300;
         margin-top: 0;
+        letter-spacing: 0.5px;
     }
 
-    /* Card containers */
+    /* Card containers / Glassmorphism */
     .card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 1.8rem 2rem;
-        margin-bottom: 1.2rem;
-        backdrop-filter: blur(10px);
+        background: rgba(17, 25, 40, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px 0 rgba(0, 242, 254, 0.15);
     }
 
     /* Section headings */
     .section-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #c4b5fd;
-        text-transform: uppercase;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #e2e8f0;
         letter-spacing: 1px;
-        margin-bottom: 0.8rem;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-title::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 24px;
+        background: linear-gradient(180deg, #00f2fe, #4facfe);
+        border-radius: 4px;
     }
 
     /* Tab styling */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 12px;
+        gap: 20px;
         background: transparent;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        padding-bottom: 4px;
+        border-bottom: 2px solid rgba(255,255,255,0.05);
+        padding-bottom: 8px;
+        margin-bottom: 20px;
     }
     .stTabs [data-baseweb="tab"] {
-        background: rgba(255,255,255,0.05);
-        border-radius: 10px 10px 0 0;
-        color: #a78bfa;
+        background: transparent;
+        border-radius: 0;
+        color: #64748b;
         font-weight: 600;
-        padding: 0.5rem 1.4rem;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-bottom: none;
+        font-size: 1.05rem;
+        padding: 0.5rem 0.5rem;
+        border: none;
+        transition: color 0.3s ease;
     }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
-        color: white !important;
+        background: transparent !important;
+        color: #00f2fe !important;
+        border-bottom: 3px solid #00f2fe !important;
+        box-shadow: 0 4px 15px -10px #00f2fe;
     }
 
     /* Buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #7c3aed, #4f46e5);
-        color: white;
+        background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        color: #ffffff;
         border: none;
-        border-radius: 10px;
-        padding: 0.55rem 2rem;
+        border-radius: 12px;
+        padding: 0.7rem 2rem;
         font-weight: 600;
-        font-size: 0.95rem;
-        transition: opacity 0.2s;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         width: 100%;
+        box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
     }
     .stButton > button:hover {
-        opacity: 0.85;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 242, 254, 0.5);
         color: white;
+    }
+    .stButton > button:active {
+        transform: translateY(1px);
     }
 
     /* Input fields */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stNumberInput > div > div > input {
-        background: rgba(255,255,255,0.07) !important;
-        border: 1px solid rgba(167,139,250,0.4) !important;
-        border-radius: 10px !important;
-        color: #f3f4f6 !important;
-        caret-color: #f3f4f6 !important;
-        padding: 0.6rem 1rem !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
+        border-radius: 12px !important;
+        color: #f8fafc !important;
+        caret-color: #00f2fe !important;
+        padding: 0.8rem 1.2rem !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
     }
     .stTextInput > div > div > input::placeholder,
     .stTextArea > div > div > textarea::placeholder {
-        color: #9ca3af !important;
-        opacity: 1 !important;
+        color: #64748b !important;
     }
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus {
-        border-color: #7c3aed !important;
-        box-shadow: 0 0 0 2px rgba(124,58,237,0.3) !important;
+        border-color: #00f2fe !important;
+        box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.2), inset 0 2px 4px rgba(0,0,0,0.1) !important;
+        background: rgba(15, 23, 42, 0.8) !important;
     }
 
     /* File uploader */
     .stFileUploader > div {
-        background: rgba(255,255,255,0.04) !important;
-        border: 2px dashed rgba(167,139,250,0.5) !important;
-        border-radius: 12px !important;
-        padding: 1.2rem !important;
-        color: #d8b4fe !important;
+        background: rgba(15, 23, 42, 0.4) !important;
+        border: 2px dashed rgba(0, 242, 254, 0.3) !important;
+        border-radius: 16px !important;
+        padding: 2rem 1.5rem !important;
+        transition: all 0.3s ease;
+    }
+    .stFileUploader > div:hover {
+        border-color: #00f2fe !important;
+        background: rgba(0, 242, 254, 0.05) !important;
     }
     .stFileUploader label, .stFileUploader span, .stFileUploader p {
-        color: #d8b4fe !important;
+        color: #94a3b8 !important;
     }
 
     /* Labels */
     label, .stTextInput label, .stTextArea label, .stNumberInput label,
     .stFileUploader label, p, span {
-        color: #d8b4fe !important;
+        color: #cbd5e1 !important;
         font-weight: 500 !important;
     }
 
     /* General text */
     .stMarkdown, .stMarkdown p, .stMarkdown li, div[data-testid="stMarkdownContainer"] p {
-        color: #f3f4f6 !important;
+        color: #e2e8f0 !important;
     }
 
     /* Answer box */
     .answer-box {
-        background: rgba(124, 58, 237, 0.12);
-        border-left: 4px solid #7c3aed;
-        border-radius: 0 12px 12px 0;
-        padding: 1.2rem 1.5rem;
-        color: #f3f4f6;
-        line-height: 1.7;
-        margin-top: 1rem;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(0, 242, 254, 0.2);
+        border-left: 5px solid #00f2fe;
+        border-radius: 12px;
+        padding: 1.5rem;
+        color: #f8fafc;
+        line-height: 1.8;
+        margin-top: 1.5rem;
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     /* Alerts */
     .stSuccess, .stInfo, .stWarning, .stError {
-        border-radius: 10px !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(10px);
     }
+    .stSuccess { background: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.3) !important; color: #34d399 !important; }
+    .stWarning { background: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.3) !important; color: #fbbf24 !important; }
+    .stError { background: rgba(239, 68, 68, 0.1) !important; border-color: rgba(239, 68, 68, 0.3) !important; color: #f87171 !important; }
 
     /* Divider */
     hr {
-        border-color: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.05);
+        margin: 2rem 0;
     }
 
     /* Navbar */
@@ -197,49 +269,57 @@ st.markdown("""
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.8rem 2rem;
-        background: rgba(255,255,255,0.04);
-        border-bottom: 1px solid rgba(167,139,250,0.2);
-        margin-bottom: 0.5rem;
-        backdrop-filter: blur(10px);
+        padding: 1rem 2.5rem;
+        background: rgba(15, 23, 42, 0.5);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 1rem;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        position: sticky;
+        top: 0;
+        z-index: 999;
     }
     .navbar-brand {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 15px;
     }
     .navbar-logo {
-        height: 42px;
+        height: 48px;
         width: auto;
-        border-radius: 8px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .navbar-name {
-        font-size: 1.25rem;
+        font-size: 1.4rem;
         font-weight: 800;
         color: #ffffff;
-        letter-spacing: -0.3px;
+        letter-spacing: -0.5px;
         line-height: 1.2;
     }
     .navbar-tagline {
-        font-size: 0.72rem;
-        color: #a78bfa;
+        font-size: 0.8rem;
+        color: #94a3b8;
         font-weight: 400;
         letter-spacing: 0.5px;
     }
     .navbar-badge {
-        background: linear-gradient(135deg, #7c3aed, #4f46e5);
-        color: white;
-        font-size: 0.75rem;
+        background: rgba(0, 242, 254, 0.1);
+        border: 1px solid rgba(0, 242, 254, 0.3);
+        color: #00f2fe;
+        font-size: 0.8rem;
         font-weight: 600;
-        padding: 0.3rem 0.9rem;
-        border-radius: 20px;
+        padding: 0.4rem 1.2rem;
+        border-radius: 30px;
         letter-spacing: 0.5px;
+        box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
     }
 
     /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 3px; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 242, 254, 0.5); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 242, 254, 0.8); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -297,12 +377,12 @@ st.markdown("""
 <div class="navbar">
     <div class="navbar-brand">
         <img class="navbar-logo"
-             src="https://mindsetters.sg/favicon.ico"
+             src="https://ui-avatars.com/api/?name=Mindflix&background=0b0f19&color=00f2fe&size=128"
              onerror="this.style.display='none'"
-             alt="Mind Setters Academy Logo">
+             alt="Mindflix Logo">
         <div>
-            <div class="navbar-name">Mind Setters Academy</div>
-            <div class="navbar-tagline">mindsetters.sg &nbsp;·&nbsp; Empowering Every Learner</div>
+            <div class="navbar-name">Mindflix</div>
+            <div class="navbar-tagline">Mindflix &nbsp;·&nbsp; Empowering Every Learner</div>
         </div>
     </div>
     <div class="navbar-badge">AI Tools</div>
@@ -313,11 +393,11 @@ st.markdown("""
 st.markdown("""
 <div class="hero">
     <h1>📄 PDF Chatbot</h1>
-    <p>Powered by Mind Setters Academy &nbsp;·&nbsp; Ask questions or generate test cases from PDF, DOCX, or JSON</p>
+    <p>Powered by Mindflix &nbsp;·&nbsp; Ask questions or generate test cases from PDF, DOCX, or JSON</p>
 </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["💬  Upload & QA", "🧪  Test Case Generator"])
+tab1, tab2, tab3, tab4 = st.tabs(["💬  Upload & QA", "🧪  Test Case Generator", "🖼️ BrandGen", "🧬 Brand DNA"])
 
 with tab1:
     col1, col2 = st.columns([1, 1.6], gap="large")
@@ -472,3 +552,217 @@ with tab2:
                         st.code(out, language="markdown")
                     except Exception as e:
                         st.error(f"Groq request failed: {e}")
+
+
+with tab3:
+    st.markdown('<div class="section-title">🖼️ BrandGen: Image Watermarking & Filters</div>', unsafe_allow_html=True)
+    
+    st.markdown("**Upload Image** *(PNG, JPG, JPEG)*")
+    bg_file = st.file_uploader("", type=["png", "jpg", "jpeg"], key="bg_upload", label_visibility="collapsed")
+    
+    col_c, col_d = st.columns([1, 1], gap="large")
+    with col_c:
+        st.markdown("**Filter Style**")
+        bg_filter = st.selectbox("", ["Mindflix Signature", "Vibrant", "Cinematic", "Vintage", "None"], key="bg_filter", label_visibility="collapsed")
+    with col_d:
+        st.markdown("**Brand Text**")
+        bg_text = st.text_input("", value="Mindflix", key="bg_text", label_visibility="collapsed")
+        
+    st.button("Apply Branding", key="bg_button")
+        
+    if st.session_state.get("bg_button") and bg_file:
+        try:
+            start_time = time.time()
+            
+            # Open image
+            original_image = Image.open(io.BytesIO(bg_file.read())).convert("RGBA")
+            image = original_image.copy()
+            
+            # --- APPLY FILTERS ---
+            if bg_filter != "None":
+                img_rgb = image.convert("RGB")
+                
+                if bg_filter in ["Mindflix Signature", "Vibrant"]:
+                    enhancer = ImageEnhance.Color(img_rgb)
+                    img_rgb = enhancer.enhance(1.3)
+                    enhancer = ImageEnhance.Contrast(img_rgb)
+                    img_rgb = enhancer.enhance(1.1)
+                    enhancer = ImageEnhance.Sharpness(img_rgb)
+                    img_rgb = enhancer.enhance(1.2)
+                    
+                if bg_filter in ["Cinematic", "Mindflix Signature"]:
+                    tint = Image.new("RGB", img_rgb.size, (0, 100, 150))
+                    img_rgb = Image.blend(img_rgb, tint, alpha=0.1)
+                    enhancer = ImageEnhance.Brightness(img_rgb)
+                    img_rgb = enhancer.enhance(0.9)
+                    
+                if bg_filter == "Vintage":
+                    tint = Image.new("RGB", img_rgb.size, (255, 150, 0))
+                    img_rgb = Image.blend(img_rgb, tint, alpha=0.15)
+                    enhancer = ImageEnhance.Contrast(img_rgb)
+                    img_rgb = enhancer.enhance(0.8)
+                    
+                if bg_filter in ["Mindflix Signature", "Cinematic", "Vintage"]:
+                    import math
+                    w, h = img_rgb.size
+                    from PIL import ImageFilter
+                    vignette = Image.new("L", (w, h), 0)
+                    d = ImageDraw.Draw(vignette)
+                    for i in range(min(w, h) // 2, min(w, h), 5):
+                        d.ellipse((w/2 - i, h/2 - i, w/2 + i, h/2 + i), outline=int(255 * (i / min(w, h))), width=5)
+                    vignette = vignette.filter(ImageFilter.GaussianBlur(min(w, h) * 0.1))
+                    dark = Image.new("RGB", img_rgb.size, (0, 0, 0))
+                    img_rgb = Image.composite(dark, img_rgb, vignette)
+                
+                image = img_rgb.convert("RGBA")
+            
+            # --- APPLY WATERMARK ---
+            txt_img = Image.new("RGBA", image.size, (255, 255, 255, 0))
+            d = ImageDraw.Draw(txt_img)
+            font_size = int(image.width * 0.05)
+            try:
+                font = ImageFont.truetype("arial.ttf", font_size)
+            except:
+                font = ImageFont.load_default()
+            
+            bbox = d.textbbox((0, 0), bg_text, font=font)
+            text_w = bbox[2] - bbox[0]
+            text_h = bbox[3] - bbox[1]
+            
+            margin = int(image.width * 0.02)
+            x = image.width - text_w - margin
+            y = image.height - text_h - margin
+            
+            outline_color = (0, 0, 0, 150)
+            text_color = (0, 242, 254, 230)
+            for adj in range(-2, 3):
+                d.text((x+adj, y), bg_text, font=font, fill=outline_color)
+                d.text((x, y+adj), bg_text, font=font, fill=outline_color)
+            d.text((x, y), bg_text, font=font, fill=text_color)
+            
+            out = Image.alpha_composite(image, txt_img).convert("RGB")
+            orig_rgb = original_image.convert("RGB")
+            
+            st.markdown('<div class="section-title">✨ Final Result</div>', unsafe_allow_html=True)
+            st.image(out, use_container_width=True)
+            
+            # Download button
+            buf_out = io.BytesIO()
+            out.save(buf_out, format="JPEG", quality=95)
+            
+            st.download_button(
+                label="Download Branded Image",
+                data=buf_out.getvalue(),
+                file_name="brandgen_result.jpg",
+                mime="image/jpeg"
+            )
+            
+        except Exception as e:
+            import traceback
+            st.error(f"Error processing image: {e}\\n{traceback.format_exc()}")
+    elif st.session_state.get("bg_button"):
+        st.warning("Please upload an image first.")
+
+with tab4:
+    st.markdown('<div class="section-title">🧬 Brand DNA & AI Visuals Generator</div>', unsafe_allow_html=True)
+    st.markdown("Extract your Brand DNA and generate brand-compliant marketing images using AI.")
+    
+    col_dna1, col_dna2 = st.columns([1, 1], gap="large")
+    
+    with col_dna1:
+        st.markdown("**Paste Brand Guidelines / Aesthetic Rules**")
+        dna_guidelines = st.text_area("", height=150, placeholder="e.g. Minimalist, neon cyan and dark blue, energetic tone, targeting young professionals...", key="dna_guidelines")
+        
+        st.markdown("**Campaign Goal**")
+        dna_goal = st.text_input("", placeholder="e.g. Instagram post for summer sale", key="dna_goal")
+        
+        generate_btn = st.button("Extract DNA & Generate Image", key="dna_btn")
+        
+    with col_dna2:
+        if generate_btn:
+            if not dna_guidelines or not dna_goal:
+                st.warning("Please provide both guidelines and a campaign goal.")
+            else:
+                with st.spinner("🧠 Extracting Brand DNA..."):
+                    # 1. Extract DNA using Groq
+                    try:
+                        import os
+                        from groq import Groq
+                        
+                        groq_key = os.getenv("GROQ_API_KEY")
+                        if not groq_key:
+                            st.error("Missing GROQ_API_KEY in environment.")
+                            st.stop()
+                            
+                        client = Groq(api_key=groq_key)
+                        prompt = f"""
+                        You are an expert Brand Designer. 
+                        Read these guidelines: "{dna_guidelines}"
+                        And this campaign goal: "{dna_goal}"
+                        
+                        Write a highly detailed, 1-paragraph Image Generation Prompt (for DALL-E/Stable Diffusion) that incorporates the exact visual style, colors, and tone from the guidelines to accomplish the campaign goal.
+                        Output ONLY the prompt text, no intro, no extra text.
+                        """
+                        
+                        messages = [{"role": "user", "content": prompt}]
+                        resp = client.chat.completions.create(
+                            model="qwen/qwen3-32b",
+                            messages=messages,
+                            temperature=0.7,
+                            max_completion_tokens=512
+                        )
+                        optimized_prompt = resp.choices[0].message.content.strip()
+                        
+                        st.success("DNA Extracted & Prompt Engineered!")
+                        with st.expander("View Optimized Image Prompt"):
+                            st.write(optimized_prompt)
+                            
+                        # 2. Call SubNP Free API
+                        st.markdown("### 🎨 Generating Final Asset...")
+                        status_text = st.empty()
+                        img_container = st.empty()
+                        
+                        status_text.info("Initiating Image Generation... (this takes ~10-15s)")
+                        
+                        # Use requests directly
+                        try:
+                            response = requests.post(
+                                "https://subnp.com/api/free/generate",
+                                json={"prompt": optimized_prompt, "model": "magic"},
+                                stream=True,
+                                timeout=60
+                            )
+                            
+                            final_img_url = None
+                            api_error = None
+                            for line in response.iter_lines():
+                                if line:
+                                    decoded_line = line.decode('utf-8')
+                                    if decoded_line.startswith('data: '):
+                                        data_str = decoded_line[6:]
+                                        try:
+                                            data = json.loads(data_str)
+                                            if data.get('status') == 'processing':
+                                                status_text.info(f"Progress: {data.get('message', 'Generating...')}")
+                                            elif data.get('status') == 'complete':
+                                                final_img_url = data.get('imageUrl')
+                                                break
+                                            elif data.get('status') == 'error':
+                                                api_error = data.get('message', data.get('error', 'Unknown API Error'))
+                                                break
+                                        except json.JSONDecodeError:
+                                            pass
+                                            
+                            if final_img_url:
+                                status_text.success("✨ Asset generated successfully!")
+                                img_container.image(final_img_url, use_container_width=True)
+                            elif api_error:
+                                status_text.error(f"API Error: {api_error}")
+                            else:
+                                status_text.error("Failed to retrieve image URL from API (No error provided).")
+                        except Exception as req_e:
+                            status_text.error(f"API Request Failed: {req_e}")
+                            
+                    except Exception as e:
+                        import traceback
+                        st.error(f"Error extracting DNA: {e}\n{traceback.format_exc()}")
