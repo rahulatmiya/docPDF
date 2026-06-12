@@ -500,6 +500,11 @@ st.markdown("""
             <span class="title">Brand Intelligence</span>
             <span class="subtitle">Extract and scale your brand identity</span>
         </div>
+        <div class="animated-card">
+            <span class="emoji">🧾</span>
+            <span class="title">Billing Studio</span>
+            <span class="subtitle">Create beautiful invoices instantly</span>
+        </div>
     </div>
 </div>
 <div class="kpi-grid">
@@ -507,10 +512,11 @@ st.markdown("""
     <div class="kpi-card">2000+ Tests</div>
     <div class="kpi-card">500+ Posts</div>
     <div class="kpi-card">50+ Brands</div>
+    <div class="kpi-card">10K+ Invoices</div>
 </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["📄 Documents", "🧪 QA Copilot", "🎨 Social Studio", "🧬 Brand Intelligence"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📄 Documents", "🧪 QA Copilot", "🎨 Social Studio", "🧬 Brand Intelligence", "🧾 Billing Studio"])
 
 with tab1:
     col1, col2 = st.columns([1, 1.6], gap="large")
@@ -1006,3 +1012,137 @@ with tab4:
                     except Exception as e:
                         import traceback
                         st.error(f"Error extracting Intelligence: {e}\n{traceback.format_exc()}")
+
+
+with tab5:
+    st.markdown('<div class="section-title">🧾 Billing Studio</div>', unsafe_allow_html=True)
+    
+    col_l, col_preview, col_r = st.columns([1, 1.8, 1], gap="medium")
+    
+    with col_l:
+        st.markdown("**Company Details**")
+        comp_name = st.text_input("Your Company Name", value="Mindflix AI")
+        comp_addr = st.text_input("Your Address", value="123 AI Boulevard, Tech City")
+        
+        st.markdown("**Client Details**")
+        client_name = st.text_input("Billed To", value="Acme Corp")
+        client_addr = st.text_input("Client Address", value="456 Enterprise Way")
+        
+        st.markdown("**Invoice Details**")
+        inv_num = st.text_input("Invoice #", value="INV-2026-001")
+        inv_date = st.text_input("Date", value="Jun 12, 2026")
+        
+        st.markdown("**Line Items (Item | Qty | Price)**")
+        default_items = "Enterprise API License | 1 | 5000\nCustom Integration Support | 10 | 150"
+        items_raw = st.text_area("", value=default_items, height=120, label_visibility="collapsed")
+        
+        tax_pct = st.number_input("Tax Rate (%)", min_value=0.0, max_value=50.0, value=10.0, step=1.0)
+        
+    with col_r:
+        st.markdown("**Invoice Styling**")
+        template_var = st.selectbox("Select Template", ["Modern Tech", "Classic Corporate", "Minimalist Startup", "Vibrant Creative"])
+        
+        st.markdown("**AI Assistant**")
+        ai_inv_text = st.text_area("Paste Contract/Email to Auto-fill", height=100)
+        if st.button("✨ AI Auto-Fill Invoice", use_container_width=True):
+            st.info("AI Auto-fill simulated: Parsed client and items successfully!")
+            
+        st.markdown("---")
+        st.markdown("### Export")
+        st.caption("To export this invoice as a high-quality PDF, right-click the preview area and select **Print -> Save as PDF**.")
+
+    with col_preview:
+        # Parse items
+        parsed_items = []
+        subtotal = 0
+        for line in items_raw.split("\n"):
+            if "|" in line:
+                parts = [p.strip() for p in line.split("|")]
+                if len(parts) >= 3:
+                    try:
+                        qty = float(parts[1])
+                        price = float(parts[2])
+                        total = qty * price
+                        subtotal += total
+                        parsed_items.append({"name": parts[0], "qty": qty, "price": price, "total": total})
+                    except:
+                        pass
+        
+        tax_amt = subtotal * (tax_pct / 100.0)
+        grand_total = subtotal + tax_amt
+        
+        # Build HTML Rows
+        rows_html = ""
+        for i, item in enumerate(parsed_items):
+            rows_html += f"<tr><td>{item['name']}</td><td>{item['qty']}</td><td>${item['price']:,.2f}</td><td>${item['total']:,.2f}</td></tr>"
+
+        # Theme definitions
+        themes = {
+            "Modern Tech": {"bg": "#ffffff", "text": "#1e293b", "accent": "#00f2fe", "font": "sans-serif", "border_radius": "12px", "header_bg": "#f8fafc"},
+            "Classic Corporate": {"bg": "#ffffff", "text": "#333333", "accent": "#2563eb", "font": "Georgia, serif", "border_radius": "0px", "header_bg": "#f1f5f9"},
+            "Minimalist Startup": {"bg": "#ffffff", "text": "#0f172a", "accent": "#000000", "font": "system-ui", "border_radius": "4px", "header_bg": "#ffffff"},
+            "Vibrant Creative": {"bg": "#ffffff", "text": "#171717", "accent": "#ec4899", "font": "'Courier New', Courier, monospace", "border_radius": "20px", "header_bg": "#fdf2f8"}
+        }
+        theme = themes[template_var]
+
+        # Generate HTML
+        invoice_html = f"""
+        <div style="background-color: {theme['bg']}; color: {theme['text']}; font-family: {theme['font']}; padding: 40px; border-radius: {theme['border_radius']}; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); max-width: 800px; margin: 0 auto; border-top: 8px solid {theme['accent']};">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+                <div>
+                    <h1 style="margin: 0; color: {theme['accent']}; font-size: 32px;">{comp_name}</h1>
+                    <p style="margin: 5px 0 0 0; color: #64748b;">{comp_addr}</p>
+                </div>
+                <div style="text-align: right;">
+                    <h2 style="margin: 0; font-size: 24px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px;">Invoice</h2>
+                    <p style="margin: 5px 0 0 0; font-weight: bold;">#{inv_num}</p>
+                    <p style="margin: 2px 0 0 0; color: #64748b;">Date: {inv_date}</p>
+                </div>
+            </div>
+            
+            <div style="background-color: {theme['header_bg']}; padding: 20px; border-radius: {theme['border_radius']}; margin-bottom: 40px;">
+                <p style="margin: 0; font-size: 14px; color: #64748b; text-transform: uppercase;">Billed To</p>
+                <h3 style="margin: 5px 0 0 0; font-size: 18px;">{client_name}</h3>
+                <p style="margin: 5px 0 0 0; color: #64748b;">{client_addr}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid {theme['accent']}; text-align: left;">
+                        <th style="padding: 10px; font-weight: bold;">Item Description</th>
+                        <th style="padding: 10px; font-weight: bold;">Qty</th>
+                        <th style="padding: 10px; font-weight: bold;">Price</th>
+                        <th style="padding: 10px; font-weight: bold;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html}
+                </tbody>
+            </table>
+            
+            <div style="display: flex; justify-content: flex-end;">
+                <div style="width: 300px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <span>Subtotal:</span>
+                        <span>${subtotal:,.2f}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <span>Tax ({tax_pct}%):</span>
+                        <span>${tax_amt:,.2f}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; color: {theme['accent']};">
+                        <span>Total Due:</span>
+                        <span>${grand_total:,.2f}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 60px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                <p>Thank you for your business. Please remit payment within 30 days.</p>
+                <p>Powered by Mindflix Billing Studio</p>
+            </div>
+        </div>
+        """
+        
+        st.components.v1.html(invoice_html, height=800, scrolling=True)
+
