@@ -1935,8 +1935,8 @@ elif current_page == "🛡️ Security Auditor":
 st.markdown(f"""
 <style>
 .global-footer-section {{
-    margin-top: 2rem;
-    padding-top: 2rem;
+    margin-top: 0rem;
+    padding-top: 0rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     background: transparent;
 }}
@@ -2043,14 +2043,16 @@ color: #cbd5e1;
 }}
 
 .footer-form-group input, .footer-form-group textarea {{
-background: rgba(15, 23, 42, 0.6);
-border: 1px solid rgba(255, 255, 255, 0.1);
-border-radius: 8px;
-padding: 0.8rem 1rem;
-color: white;
-font-family: inherit;
-font-size: 1rem;
-transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    color: white;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.3s ease;
 }}
 
 .footer-form-group input:focus, .footer-form-group textarea:focus {{
