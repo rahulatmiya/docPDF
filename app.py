@@ -1935,8 +1935,8 @@ elif current_page == "🛡️ Security Auditor":
 st.markdown(f"""
 <style>
 .global-footer-section {{
-    margin-top: 0rem;
-    padding-top: 0rem;
+    margin-top: 2rem;
+    padding-top: 3rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     background: transparent;
 }}
