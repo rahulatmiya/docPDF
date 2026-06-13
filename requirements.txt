@@ -7,4 +7,4 @@ pypdf
 python-docx
 Pillow
 duckduckgo-search
-faiss-cpu
+faiss-cpurazorpay
