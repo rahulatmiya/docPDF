@@ -60,78 +60,12 @@ if 'projects' not in st.session_state:
 
 
 # Global Sidebar
-with st.sidebar:
-    st.markdown('<div style="text-align: center; margin-bottom: 20px;"><img src="https://ui-avatars.com/api/?name=Mindflix&background=0b0f19&color=00f2fe&size=128" style="width: 50px; border-radius: 50%; border: 2px solid #00f2fe; box-shadow: 0 0 15px rgba(0,242,254,0.4);"><br><h2 style="margin: 10px 0 0 0; color: white;">Mindflix</h2></div>', unsafe_allow_html=True)
-    st.markdown("---")
-    
-    st.markdown("### 🧭 Navigation")
-    pages = ["🏠 Dashboard", "📄 Docs AI", "🧪 QA Copilot", "🛡️ Security Auditor", "📈 Automation Engineer", "🎨 Social Studio", "🧬 Brand Intelligence", "💰 Billing", "🤖 AI Agents", "📧 Inquiry"]
-    
-    # Custom CSS for radio buttons to make them look like sidebar links
-    st.markdown('''
-<style>
-        div[role="radiogroup"] > label {
-            padding: 10px 15px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 8px;
-            margin-bottom: 5px;
-            transition: all 0.3s;
-        }
-        div[role="radiogroup"] > label:hover {
-            background: rgba(0, 242, 254, 0.1);
-        }
-    .avatar-initials {
-        width: 55px;
-        height: 55px;
-        min-width: 55px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, rgba(0, 242, 254, 0.1) 0%, rgba(79, 172, 254, 0.2) 100%);
-        border: 2px solid #00f2fe;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #ffffff;
-        font-weight: 800;
-        font-size: 1.2rem;
-        letter-spacing: 1px;
-        box-shadow: 0 0 15px rgba(0,242,254,0.3);
-    }
-</style>
-    ''', unsafe_allow_html=True)
-    
-    if "current_page" not in st.session_state:
-        st.session_state.current_page = "🏠 Dashboard"
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "🏠 Dashboard"
 
-    # Sync radio state with programmatic state before rendering
-    if st.session_state.get("current_page_radio") != st.session_state.current_page:
-        st.session_state.current_page_radio = st.session_state.current_page
+current_page = st.session_state.current_page
 
-    current_page = st.radio("Navigation", pages, label_visibility="collapsed", key="current_page_radio")
-
-    if current_page != st.session_state.current_page:
-        st.session_state.current_page = current_page
-        st.rerun()
-    
-    st.markdown("---")
-    
-    st.markdown("### 📁 Workspace")
-    project_list = list(st.session_state.projects.keys())
-    active_proj = st.selectbox("Active Project", project_list, index=project_list.index(st.session_state.active_project))
-    st.session_state.active_project = active_proj
-    
-    st.markdown(f"**Current Context:** {active_proj}")
-    
-    st.markdown("<br><b>📄 Files</b>", unsafe_allow_html=True)
-    for file in st.session_state.projects[active_proj]["files"]:
-        st.markdown(f"<div style='padding: 5px 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 5px; border-left: 3px solid #00f2fe; color: #e2e8f0;'>✓ {file}</div>", unsafe_allow_html=True)
-        
-    st.markdown("<br><b>✨ Generated</b>", unsafe_allow_html=True)
-    for gen in st.session_state.projects[active_proj]["generated"]:
-        st.markdown(f"<div style='padding: 5px 10px; background: rgba(0,242,254,0.05); margin-bottom: 5px; border-radius: 5px; border-left: 3px solid #b14bf4; color: #e2e8f0;'>✓ {gen}</div>", unsafe_allow_html=True)
-        
-    st.markdown("---")
-    st.button("➕ Upload Context", use_container_width=True)
-    st.button("⚙️ Project Settings", use_container_width=True)
+st.markdown('''<style>[data-testid="collapsedControl"] { display: none; }</style>''', unsafe_allow_html=True)
 
 st.markdown("""
 <style>
