@@ -34,7 +34,8 @@ if "nav" in st.query_params:
         "qa": "🧪 QA Copilot",
         "social": "🎨 Social Studio",
         "brand": "🧬 Brand Intelligence",
-        "billing": "💰 Billing"
+        "billing": "💰 Billing",
+        "latex": "📝 LaTeX Studio"
     }
     if nav_val in nav_map:
         st.session_state.current_page = nav_map[nav_val]
@@ -834,6 +835,7 @@ if current_page != "🏠 Dashboard" and current_page not in ["📧 Inquiry"]:
     active_social = "active" if current_page == "🎨 Social Studio" else ""
     active_brand = "active" if current_page == "🧬 Brand Intelligence" else ""
     active_billing = "active" if current_page == "💰 Billing" else ""
+    active_latex = "active" if current_page == "📝 LaTeX Studio" else ""
     
     st.markdown(f"""
     <style>
@@ -873,6 +875,7 @@ if current_page != "🏠 Dashboard" and current_page not in ["📧 Inquiry"]:
         <a href="?nav=social" target="_self" class="global-tab {active_social}">🎨 Social Studio</a>
         <a href="?nav=brand" target="_self" class="global-tab {active_brand}">🧬 Brand Intelligence</a>
         <a href="?nav=billing" target="_self" class="global-tab {active_billing}">🧾 Billing Studio</a>
+        <a href="?nav=latex" target="_self" class="global-tab {active_latex}">📝 LaTeX Studio</a>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1518,6 +1521,59 @@ def render_billing_studio():
 
 
 
+
+
+def render_latex_studio():
+    st.markdown('<div class="section-title">📝 LaTeX to PDF Studio</div>', unsafe_allow_html=True)
+    st.markdown("<p style='color: #94a3b8; font-size: 1.1rem; margin-bottom: 2rem;'>Edit and compile LaTeX documents instantly.</p>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1, 1], gap="large")
+    
+    with col1:
+        if "latex_code" not in st.session_state:
+            st.session_state.latex_code = "\\documentclass{article}\n\\begin{document}\nHello World!\n\\end{document}"
+            
+        st.markdown("### 📝 Code Editor")
+        # Use a unique key and on_change to ensure state stays in sync
+        def update_latex():
+            st.session_state.latex_code = st.session_state.latex_editor_val
+            
+        st.text_area("LaTeX Source Code", value=st.session_state.latex_code, height=500, key="latex_editor_val", on_change=update_latex)
+        
+    with col2:
+        st.markdown("### 📄 Live Preview")
+        if st.button("🔄 Compile to PDF", type="primary", use_container_width=True):
+            with st.spinner("Compiling PDF on remote server..."):
+                import requests
+                try:
+                    url = "https://latexonline.cc/compile"
+                    res = requests.get(url, params={"text": st.session_state.latex_code}, timeout=30)
+                    if res.status_code == 200:
+                        st.session_state.compiled_pdf = res.content
+                        st.success("Successfully compiled!")
+                    else:
+                        st.error("Compilation Error:")
+                        st.code(res.text, language="text")
+                except Exception as e:
+                    st.error(f"Failed to reach compilation server: {e}")
+                    
+        if "compiled_pdf" in st.session_state:
+            import base64
+            b64_pdf = base64.b64encode(st.session_state.compiled_pdf).decode('utf-8')
+            pdf_display = f'<iframe src="data:application/pdf;base64,{b64_pdf}" width="100%" height="600" type="application/pdf" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>'
+            st.markdown(pdf_display, unsafe_allow_html=True)
+            
+            st.download_button(
+                label="⬇️ Download PDF",
+                data=st.session_state.compiled_pdf,
+                file_name="document.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+
+if current_page == "📝 LaTeX Studio":
+    render_latex_studio()
+
 if current_page == "🏠 Dashboard":
     # Hero
     st.markdown("""
@@ -1563,6 +1619,13 @@ if current_page == "🏠 Dashboard":
 <span class="emoji">🧾</span>
 <span class="title">Billing Studio</span>
 <span class="subtitle">Create beautiful invoices instantly</span>
+</div>
+</a>
+<a href="?nav=latex" target="_self" style="text-decoration: none; color: inherit;">
+<div class="animated-card">
+<span class="emoji">📝</span>
+<span class="title">LaTeX Studio</span>
+<span class="subtitle">Generate & Compile PDF Documents</span>
 </div>
 </a>
 </div>
