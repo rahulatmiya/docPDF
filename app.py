@@ -1653,6 +1653,18 @@ if current_page == "🏠 Dashboard":
 <div class="kpi-card"><span class="kpi-num">5</span><span class="kpi-label">Invoices Created</span></div>
 </div>
 
+<a href="https://mindflix.in" target="_blank" style="text-decoration: none; display: block; margin: 4rem auto; max-width: 900px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+<div style="display: flex; background: linear-gradient(135deg, #0f172a, #1e1b4b); height: 250px; position: relative;">
+<div style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-family: sans-serif; letter-spacing: 1px;">ADVERTISEMENT</div>
+<div style="flex: 1; padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+<h2 style="color: #fff; margin: 0; font-size: 2rem; font-weight: 800; line-height: 1.2;">Supercharge your workflow.</h2>
+<p style="color: #cbd5e1; margin: 10px 0 20px 0; font-size: 1.1rem;">Join 10,000+ teams using Mindflix to automate testing and scale content.</p>
+<span style="color: #4da8da; font-weight: bold; font-size: 1rem;">Visit Mindflix.in &rarr;</span>
+</div>
+<div style="flex: 1; background: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') center right/cover; clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);"></div>
+</div>
+</a>
+
 <div class="testimonial-section">
 <h3>Loved by Innovators</h3>
 <div class="testimonial-grid">
