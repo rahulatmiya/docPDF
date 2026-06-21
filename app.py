@@ -1560,7 +1560,7 @@ def render_latex_studio():
         if "compiled_pdf" in st.session_state:
             import base64
             b64_pdf = base64.b64encode(st.session_state.compiled_pdf).decode('utf-8')
-            pdf_display = f'<iframe src="data:application/pdf;base64,{b64_pdf}" width="100%" height="600" type="application/pdf" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>'
+            pdf_display = f'<embed src="data:application/pdf;base64,{b64_pdf}" width="100%" height="600" type="application/pdf" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">'
             st.markdown(pdf_display, unsafe_allow_html=True)
             
             st.download_button(
