@@ -1560,8 +1560,54 @@ def render_latex_studio():
         if "compiled_pdf" in st.session_state:
             import base64
             b64_pdf = base64.b64encode(st.session_state.compiled_pdf).decode('utf-8')
-            pdf_display = f'<embed src="data:application/pdf;base64,{b64_pdf}" width="100%" height="600" type="application/pdf" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">'
-            st.markdown(pdf_display, unsafe_allow_html=True)
+            pdf_js_code = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+                <style>
+                    body {{ margin: 0; padding: 0; background-color: transparent; overflow: auto; text-align: center; }}
+                    canvas {{ max-width: 100%; height: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 20px; }}
+                </style>
+            </head>
+            <body>
+                <div id="pdf-container"></div>
+                <script>
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                    
+                    var pdfData = atob('{b64_pdf}');
+                    var pdfArray = new Uint8Array(pdfData.length);
+                    for (var i = 0; i < pdfData.length; i++) {{
+                        pdfArray[i] = pdfData.charCodeAt(i);
+                    }}
+
+                    pdfjsLib.getDocument({{data: pdfArray}}).promise.then(function(pdf) {{
+                        for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {{
+                            pdf.getPage(pageNum).then(function(page) {{
+                                var scale = 1.5;
+                                var viewport = page.getViewport({{scale: scale}});
+
+                                var canvas = document.createElement('canvas');
+                                var context = canvas.getContext('2d');
+                                canvas.height = viewport.height;
+                                canvas.width = viewport.width;
+
+                                document.getElementById('pdf-container').appendChild(canvas);
+
+                                var renderContext = {{
+                                    canvasContext: context,
+                                    viewport: viewport
+                                }};
+                                page.render(renderContext);
+                            }});
+                        }}
+                    }});
+                </script>
+            </body>
+            </html>
+            """
+            import streamlit.components.v1 as components
+            components.html(pdf_js_code, height=600, scrolling=True)
             
             st.download_button(
                 label="⬇️ Download PDF",
